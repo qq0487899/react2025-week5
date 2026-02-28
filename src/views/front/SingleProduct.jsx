@@ -1,0 +1,59 @@
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+
+const API_BASE = import.meta.env.VITE_API_BASE;
+const API_PATH = import.meta.env.VITE_API_PATH;
+
+const SingleProduct = () => {
+  const { id } = useParams();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const getProduct = async () => {
+      try {
+        const res = await axios.get(`${API_BASE}/api/${API_PATH}/product/${id}`);
+        setProduct(res.data.product);
+      } catch (error) {
+        console.error("取得商品資料失敗", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    getProduct();
+  }, [id]);
+
+  const addToCart = async (id, qty = 1) => {
+    try {
+      const data = { product_id: id, qty };
+      const res = await axios.post(`${API_BASE}/api/${API_PATH}/cart`, { data });
+      console.log(res.data);
+      alert("已加入購物車！");
+    } catch (error) {
+      console.error("加入購物車失敗", error);
+      alert("加入購物車失敗");
+    }
+  };
+
+  if (loading) return <div>資料載入中...</div>;
+  if (!product) return <div>沒有可用的產品資料。</div>;
+
+  return (
+    <div className="container mt-4">
+      <div className="card" style={{ width: "18rem" }}>
+        <img src={product.imageUrl} className="card-img-top" alt={product.title} />
+        <div className="card-body">
+          <h5 className="card-title">{product.title}</h5>
+          <p className="card-text">{product.description}</p>
+          <p className="card-text"><strong>分類:</strong> {product.category}</p>
+          <p className="card-text"><strong>單位:</strong> {product.unit}</p>
+          <p className="card-text"><strong>售價:</strong> {product.price} 元</p>
+          <button className="btn btn-primary" onClick={() => addToCart(product.id)}>加入購物車</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default SingleProduct;
